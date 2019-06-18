@@ -13,10 +13,11 @@ class IDGenerator:
         self.TIMESTAMP_BITS = self.SHARD_ID_BITS + self.SEQUENCE_BITS
         self.REDIS_SHARD_ID_KEY = 'py-id-generator-shard-id'
         self.REDIS_SEQUENCE_KEY = 'py-id-generator-sequence'
-        self.redis = get_shard(self.REDIS_SHARD_ID)
         self.ONE_SECOND_OF_MICRO = 1000
-        self.MAX_SEQUENCE = 1 >> self.SEQUENCE_BITS
-        self.MAX_SHARD_ID = 1 >> self.SHARD_ID_BITS
+        self.MAX_SEQUENCE = 1 << self.SEQUENCE_BITS
+        self.MAX_SHARD_ID = 1 << self.SHARD_ID_BITS
+        
+        self.redis = get_shard(self.REDIS_SHARD_ID)
 
         if not self.redis.exists(self.REDIS_SEQUENCE_KEY):
             self.sequence_init()
@@ -42,7 +43,7 @@ class IDGenerator:
     def get_ids(self, count=1):
         if self.sequence_full():
             self.sequence_init()
-            
+
         seq_end = self.redis.incrby(self.REDIS_SEQUENCE_KEY, count)
         seq_start = seq_end - count
         time = self.get_time()
