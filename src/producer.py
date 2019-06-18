@@ -13,7 +13,7 @@ class Producer:
 
 
 if __name__ == '__main__':
-    producer = Producer("keys")
+    producer = Producer("tasks")
     while True:
         producer.push(random.randint(0, 100))
         time.sleep(1)

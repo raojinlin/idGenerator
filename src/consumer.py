@@ -20,6 +20,6 @@ if __name__ == "__main__":
         else:
             print("got nothing, waiting....")
 
-    consumer = Consumer(handler, "keys")
+    consumer = Consumer(handler, "tasks")
     consumer.run()
 
