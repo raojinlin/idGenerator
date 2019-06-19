@@ -1,0 +1,20 @@
+version: '3'
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    expose:
+      - 5000
+    environment:
+      FLASK_ENV: development
+
+  redis_shard1:
+    image: redis
+
+  redis_shard2:
+    image: redis
+
+  redis_shard3:
+    image: redis
+

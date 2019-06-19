@@ -1,5 +1,4 @@
-from src.client import get_shard
-from time import time as timstamp
+from id_generator.shard import get_shard
 
 
 class IDGenerator:
@@ -18,7 +17,7 @@ class IDGenerator:
         self.MAX_SEQUENCE = 1 << self.SEQUENCE_BITS
         self.MAX_SHARD_ID = 1 << self.SHARD_ID_BITS
         
-        self.redis = get_shard(self.REDIS_SHARD_ID)
+        self.redis = get_shard(redis_shard)
 
         if not self.redis.exists(self.REDIS_SEQUENCE_KEY):
             self.sequence_init()

@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+
+from  id_generator.idgenerator import IDGenerator
+
+if __name__ == '__main__':
+    generator = IDGenerator(1)
+    print(generator.get_id())
