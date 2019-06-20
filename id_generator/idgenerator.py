@@ -14,6 +14,7 @@ class IDGenerator:
         self.REDIS_SHARD_ID_KEY = 'py-id-generator-shard-id'
         self.REDIS_SEQUENCE_KEY = 'py-id-generator-sequence'
         self.ONE_SECOND_OF_MICRO = 1000
+        self.ONE_MICRO_OF_MILLI = self.ONE_SECOND_OF_MICRO
         self.MAX_SEQUENCE = 1 << self.SEQUENCE_BITS
         self.MAX_SHARD_ID = 1 << self.SHARD_ID_BITS
         
@@ -22,9 +23,14 @@ class IDGenerator:
         if not self.redis.exists(self.REDIS_SEQUENCE_KEY):
             self.sequence_init()
 
+        if not self.redis.exists(self.REDIS_SHARD_ID_KEY):
+            self.redis.set(self.REDIS_SHARD_ID_KEY, self.REDIS_SHARD_ID)
+        elif not self.is_valid_shard_id():
+                raise Exception("parameters redis_shard '%d' do not match %s." % (self.REDIS_SHARD_ID, self.REDIS_SHARD_ID_KEY))
+
     def get_time(self):
         time, microsecond = self.redis.time()
-        return time * self.ONE_SECOND_OF_MICRO + int(microsecond / self.ONE_SECOND_OF_MICRO) - self.START_TIME
+        return time * self.ONE_SECOND_OF_MICRO + int(microsecond / self.ONE_MICRO_OF_MILLI) - self.START_TIME
 
     def sequence_full(self):
         current_sequence = int(self.redis.get(self.REDIS_SEQUENCE_KEY).decode('utf-8'))
@@ -34,8 +40,11 @@ class IDGenerator:
         self.redis.set(self.REDIS_SEQUENCE_KEY, 0)
 
     def is_valid_shard_id(self):
-        redis_shard_id = self.redis.get(self.REDIS_SHARD_ID_KEY).decode('utf-8')
-        return int(redis_shard_id) == self.REDIS_SHARD_ID
+        try:
+            redis_shard_id = self.redis.get(self.REDIS_SHARD_ID_KEY).decode('utf-8')
+            return int(redis_shard_id) == self.REDIS_SHARD_ID
+        except:
+            return False
 
     def get_id(self):
         return list(self.get_ids())[0]
