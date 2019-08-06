@@ -1,5 +1,5 @@
 from id_generator.shard import get_shard
-
+from id_generator.shard import UnknownShardException
 
 class IDGenerator:
     """redis 分布式id生成器
@@ -26,15 +26,17 @@ class IDGenerator:
         if not self.redis.exists(self.REDIS_SHARD_ID_KEY):
             self.redis.set(self.REDIS_SHARD_ID_KEY, self.REDIS_SHARD_ID)
         elif not self.is_valid_shard_id():
-                raise Exception("parameters redis_shard '%d' do not match %s." % (self.REDIS_SHARD_ID, self.REDIS_SHARD_ID_KEY))
+            raise UnknownShardException("unknown shard id: %s" % self.REDIS_SHARD_ID)
 
     def get_time(self):
         time, microsecond = self.redis.time()
         return time * self.ONE_SECOND_OF_MICRO + int(microsecond / self.ONE_MICRO_OF_MILLI) - self.START_TIME
 
+    def get_current_sequence(self):
+        return int(self.redis.get(self.REDIS_SEQUENCE_KEY).decode('utf-8'))
+
     def sequence_full(self):
-        current_sequence = int(self.redis.get(self.REDIS_SEQUENCE_KEY).decode('utf-8'))
-        return current_sequence >= self.MAX_SEQUENCE
+        return self.get_current_sequence() >= self.MAX_SEQUENCE
 
     def sequence_init(self):
         self.redis.set(self.REDIS_SEQUENCE_KEY, 0)
@@ -52,6 +54,10 @@ class IDGenerator:
     def get_ids(self, count=1):
         if self.sequence_full():
             self.sequence_init()
+
+        current = self.get_current_sequence()
+        if current + count >= self.MAX_SEQUENCE:
+            count = self.MAX_SEQUENCE - current
 
         seq_end = self.redis.incrby(self.REDIS_SEQUENCE_KEY, count)
         seq_start = seq_end - count
