@@ -4,6 +4,7 @@ import random
 
 from flask import request
 from id_generator.idgenerator import IDGenerator
+from id_generator.shard import get_shards
 
 app = flask.Flask("App")
 
@@ -23,7 +24,8 @@ def get_ids():
 
 @app.route("/shard/id")
 def get_id_from_shard():
-    shard_id = request.args.get("shard_id") or random.randrange(0, 4)
+    shards = get_shards()
+    shard_id = request.args.get("shard_id") or random.randrange(1, len(shards))
     _id = IDGenerator(int(shard_id)).get_id()
     return json.dumps({"id": _id, "id_str": str(_id)})
 
