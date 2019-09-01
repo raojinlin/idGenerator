@@ -12,6 +12,7 @@ app = flask.Flask("App")
 @app.route("/id")
 def get_id():
     _id = IDGenerator(1).get_id()
+    app.logger.info("Generator id: %d" % _id)
     return json.dumps({"id": _id, "id_str": str(_id)})
 
 
@@ -19,6 +20,7 @@ def get_id():
 def get_ids():
     count = request.args.get("count") or 10
     ids = list(IDGenerator(1).get_ids(int(count)))
+    app.logger.info("Batch generator ids: [%s]" % ", ".join([str(i) for i in ids]))
     return json.dumps({"ids": ids, "ids_str": [str(i) for i in ids]})
 
 
@@ -27,6 +29,8 @@ def get_id_from_shard():
     shards = get_shards()
     shard_id = request.args.get("shard_id") or random.randrange(1, len(shards))
     _id = IDGenerator(int(shard_id)).get_id()
+    
+    app.logger.info("Shard: %d, generator id: %d" % (shard_id, _id))
     return json.dumps({"id": _id, "id_str": str(_id)})
 
 
